@@ -32,7 +32,7 @@ Flags:
 -s, --secret	|	The name of the secret that must be extracted (default : "csrf")
 -l, --listChar	|	List of char that can compose the secret (default : "abcdefghijklmnopqrstuvwxyz0123456789")
 -v --verbose	|	Activate verbose mode (default : False)
--n, --lenSecret	|	The size of the secret. Should be equal or bigger than the real size of the secret (default : 30)`,
+-n, --lenSecret	|	The length of the secret. Should be equal or bigger than the real length of the secret (default : 30)`,
 }
 
 func Execute() {
