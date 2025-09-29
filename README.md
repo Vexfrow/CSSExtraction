@@ -10,7 +10,7 @@ This tool was mainly created to learn Golang and the [Cobra CLI framework](https
 
 Build it from root directory
 ```
-go build . -o CSSExtraction
+go build -o CSSExtraction
 ```
 
 Launch it
@@ -26,15 +26,14 @@ Launch it
 ## Options
 
 - `-p`, `--port` : Port to be used for the server;
-- `-v`, `--verbose` : Activate verbose mode;
 - `-t`, `--tokenName` : the name of the token that should be exfiltrated;
 - `-l`, `--listChar` : The list of characters that can composed the token;
 - `-n`, `--tokenSize` :The length of the token. Should be equal or greater than the real length of the token.
 - `-s`, `--prefixToken` : Specify the characters that prefixed the token (Its purpose is explained in the "known problem" section below);
 
-
+### Examples
 ```
-./CSSExtraction -v -p [Port]
+./CSSExtraction -v -p 1337 -t "tokenName" -l "0123456789" -n 10 -s "StartToken"
 ```
 
 # What it does 
@@ -44,7 +43,7 @@ Launch an HTTP server with a malicious CSS that can perform the SIC technique to
 
 ## Known problem
 
-Some request made by the "victim" may indefinitely remain pending. I'm not planing to fix it for the moment.
+Some request made by the "victim" may indefinitely remain pending. I'm not planing to fix it for now.
 
 A solution to this problem is to restart the server and use the `-s` flag with the characters that have already been exfiltrated
 
