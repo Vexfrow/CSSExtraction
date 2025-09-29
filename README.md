@@ -18,10 +18,19 @@ Launch it
 ./CSSExtraction
 ```
 
-## Possible Options
+## Flags
 
-- **-p** : Port to be used for the server
-- **-v** : Activate verbose mode. Print every data at each point of the technuique, instead of just the result
+- `-h`, `--help` : Print the help message;
+- `-v`, `--verbose` : Activate verbose mode;
+
+## Options
+
+- `-p`, `--port` : Port to be used for the server;
+- `-v`, `--verbose` : Activate verbose mode;
+- `-t`, `--tokenName` : the name of the token that should be exfiltrated;
+- `-l`, `--listChar` : The list of characters that can composed the token;
+- `-n`, `--tokenSize` :The length of the token. Should be equal or greater than the real length of the token.
+- `-s`, `--prefixToken` : Specify the characters that prefixed the token (Its purpose is explained in the "known problem" section below);
 
 
 ```
@@ -30,8 +39,14 @@ Launch it
 
 # What it does 
 
-Launch an HTTP server with a malicious CSS that can perform the SIC technique to extract data from another webpage (if it's vulnerable to the technique, see d0nutptr article)
+Launch an HTTP server with a malicious CSS that can perform the SIC technique to extract data (token usually) from another web page (if it's vulnerable to the technique, see d0nutptr article)
 
+
+## Known problem
+
+Some request made by the "victim" may indefinitely remain pending. I'm not planing to fix it for the moment.
+
+A solution to this problem is to restart the server and use the `-s` flag with the characters that have already been exfiltrated
 
 
 # Credit

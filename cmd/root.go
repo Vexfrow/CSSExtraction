@@ -24,12 +24,15 @@ CSSExtraction [flags]
 
 Flags:
 -h, --help		|	Show this message
+-v, --verbose		|	Activate verbose mode (default : False)
+
+Options:
 -p, --port		|	Port to run the server on (default : 8080)
 -t, --tokenName		|	The name of the token that must be extracted (default : "csrf")
 -l, --listChar		|	List of char that can compose the token (default : "abcdefghijklmnopqrstuvwxyz0123456789")
--v, --verbose		|	Activate verbose mode (default : False)
--n, --tokenSize		|	The length of the secret. Should be equal or bigger than the real length of the secret (default : 30)
--s, --prefixToken	|	Specify the characters that prefixed the token (default : "")`,
+-s, --prefixToken	|	Specify the characters that prefixed the token (default : "")
+-n, --tokenSize		|	The length of the token. Should be equal or greater than the real length of the secret (default : 30)
+`,
 }
 
 func Execute() {
@@ -46,8 +49,8 @@ func init() {
 	rootCmd.PersistentFlags().IntVarP(&port, "port", "p", 8080, "Port to run the webpage on")
 	rootCmd.PersistentFlags().StringVarP(&server.TokenName, "tokenName", "t", "csrf", "The name of the secret that must be extracted")
 	rootCmd.PersistentFlags().StringVarP(&server.ListOfChar, "listChar", "l", "abcdefghijklmnopqrstuvwxyz0123456789", "List of char that can compose the secret")
-	rootCmd.PersistentFlags().BoolP("help", "h", true, "Show the help message")
-	rootCmd.PersistentFlags().BoolVarP(&server.Verbose, "verbose", "v", false, "Activate verbose mode")
 	rootCmd.PersistentFlags().StringVarP(&server.TokenValue, "prefixToken", "s", "", "Specify the characters that prefixed the token")
 
+	rootCmd.PersistentFlags().BoolP("help", "h", true, "Show the help message")
+	rootCmd.PersistentFlags().BoolVarP(&server.Verbose, "verbose", "v", false, "Activate verbose mode")
 }
